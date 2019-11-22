@@ -5,40 +5,6 @@ MACHINES = {
   :otuslinux => {
         :box_name => "centos/7",
         :ip_addr => '192.168.11.101',
-	:disks => {
-		:sata1 => {
-			:dfile => './sata1.vdi',
-			:size => 250,
-			:port => 1
-		},
-		:sata2 => {
-                        :dfile => './sata2.vdi',
-                        :size => 250, # Megabytes
-			:port => 2
-		},
-                :sata3 => {
-                        :dfile => './sata3.vdi',
-                        :size => 250,
-                        :port => 3
-                },
-                :sata4 => {
-                        :dfile => './sata4.vdi',
-                        :size => 250, # Megabytes
-                        :port => 4
-                },
-                :sata5 => {
-                        :dfile => './sata5.vdi',
-                        :size => 250, # Megabytes
-                        :port => 5
-                },
-                :sata6 => {
-                        :dfile => './sata6.vdi',
-                        :size => 250, # Megabytes
-                        :port => 6
-                }
-
-
-	}
 
 		
   },
@@ -57,56 +23,101 @@ Vagrant.configure("2") do |config|
 
           box.vm.network "private_network", ip: boxconfig[:ip_addr]
 
-          box.vm.provider :virtualbox do |vb|
-            	  vb.customize ["modifyvm", :id, "--memory", "1024"]
-                  needsController = false
-		  boxconfig[:disks].each do |dname, dconf|
-			  unless File.exist?(dconf[:dfile])
-				vb.customize ['createhd', '--filename', dconf[:dfile], '--variant', 'Fixed', '--size', dconf[:size]]
-                                needsController =  true
-                          end
-
-		  end
-                  if needsController == true
-                     vb.customize ["storagectl", :id, "--name", "SATA", "--add", "sata" ]
-                     boxconfig[:disks].each do |dname, dconf|
-                         vb.customize ['storageattach', :id,  '--storagectl', 'SATA', '--port', dconf[:port], '--device', 0, '--type', 'hdd', '--medium', dconf[:dfile]]
-                     end
-                  end
-          end
 	  box.vm.provision "shell", inline: <<-SHELL
 	      mkdir -p ~root/.ssh
               cp ~vagrant/.ssh/auth* ~root/.ssh
-	      yum install -y mdadm smartmontools hdparm gdisk
-		mdadm --zero-superblock --force /dev/sd{b,c,d,e,f,g}
-		mdadm --create --verbose /dev/md0 -l 10 -n 6 /dev/sd{b,c,d,e,f,g}
-		mkdir /etc/mdadm
-		touch /etc/mdadm/mdadm.conf
-		echo "DEVICE partitions" > /etc/mdadm/mdadm.conf
-		mdadm --detail --scan --verbose | awk '/ARRAY/ {print}' >> /etc/mdadm/mdadm.conf
-		mdadm /dev/md0 --fail /dev/sde
-		mdadm /dev/md0 --fail /dev/sdb
-		sleep 2
-		mdadm /dev/md0 --remove /dev/sdb
-		mdadm /dev/md0 --remove /dev/sde
-		mdadm /dev/md0 --add /dev/sdb
-		mdadm /dev/md0 --add /dev/sde
-		parted -s /dev/md0 mklabel gpt
-		parted /dev/md0 mkpart primary ext4 0% 20%
-		parted /dev/md0 mkpart primary ext4 20% 40%
-		parted /dev/md0 mkpart primary ext4 40% 60%
-		parted /dev/md0 mkpart primary ext4 60% 80%
-		parted /dev/md0 mkpart primary ext4 80% 100%
-		for i in $(seq 1 5); do sudo mkfs.ext4 /dev/md0p$i; done
-		mkdir -p /raid/part{1,2,3,4,5}
-		for i in $(seq 1 5); do mount /dev/md0p$i /raid/part$i; done
-		echo "/dev/md0p1      /raid/part1     ext4    defaults    1 2" >> /etc/fstab
-		echo "/dev/md0p2      /raid/part2     ext4    defaults    1 2" >> /etc/fstab
-		echo "/dev/md0p3      /raid/part3     ext4    defaults    1 2" >> /etc/fstab
-		echo "/dev/md0p4      /raid/part4     ext4    defaults    1 2" >> /etc/fstab
-		echo "/dev/md0p5      /raid/part5     ext4    defaults    1 2" >> /etc/fstab
+		touch /etc/sysconfig/watchlog
+		echo '# Configuration file for my watchdog service' >> /etc/sysconfig/watchlog
+		echo '# Place it to /etc/sysconfig' >> /etc/sysconfig/watchlog
+		echo '# File and word in that file that we will be monit' >> /etc/sysconfig/watchlog
+		echo 'WORD="ALERT"' >> /etc/sysconfig/watchlog
+		echo 'LOG=/var/log/watchlog.log' >> /etc/sysconfig/watchlog
+		cat /etc/sysconfig/watchlog
+		touch /var/log/watchlog.log
+		echo '...string01' >> /var/log/watchlog.log
+		echo '...string02' >> /var/log/watchlog.log
+		echo '...string03' >> /var/log/watchlog.log
+		echo '...string04' >> /var/log/watchlog.log
+		echo '...string05' >> /var/log/watchlog.log
+		echo '.... ALERT.' >> /var/log/watchlog.log
+		echo '...string06' >> /var/log/watchlog.log
+		echo '...string07' >> /var/log/watchlog.log
+		echo '...string08' >> /var/log/watchlog.log
+		echo '...string09' >> /var/log/watchlog.log
+		echo '...string10' >> /var/log/watchlog.log
+		echo '...string11' >> /var/log/watchlog.log
+		echo '..  ALERT .' >> /var/log/watchlog.log
+		echo '...string12' >> /var/log/watchlog.log
+		cat /var/log/watchlog.log
+		touch /opt/watchlog.sh
+		echo '#!/bin/bash' >> /opt/watchlog.sh
+		echo 'WORD=$1' >> /opt/watchlog.sh
+		echo 'LOG=$2' >> /opt/watchlog.sh
+		echo 'DATE=`date`' >> /opt/watchlog.sh
+		echo 'if grep $WORD $LOG &> /dev/null' >> /opt/watchlog.sh
+		echo 'then' >> /opt/watchlog.sh
+		echo 'logger "$DATE: I found word, Master!"' >> /opt/watchlog.sh
+		echo 'else' >> /opt/watchlog.sh
+		echo 'exit 0' >> /opt/watchlog.sh
+		echo 'fi' >> /opt/watchlog.sh
+		chmod o+x /opt/watchlog.sh
+		cat /opt/watchlog.sh
+		touch /etc/systemd/system/watchlog.service
+		echo '[Unit]' >> /etc/systemd/system/watchlog.service
+		echo 'Description=My watchlog service' >> /etc/systemd/system/watchlog.service
+		echo '[Service]' >> /etc/systemd/system/watchlog.service
+		echo 'Type=oneshot' >> /etc/systemd/system/watchlog.service
+		echo 'EnvironmentFile=/etc/sysconfig/watchlog' >> /etc/systemd/system/watchlog.service
+		echo 'ExecStart=/opt/watchlog.sh $WORD $LOG' >> /etc/systemd/system/watchlog.service
+		cat /etc/systemd/system/watchlog.service
+		touch /etc/systemd/system/watchlog.timer
+		echo '[Unit]' >> /etc/systemd/system/watchlog.timer
+		echo 'Description=Run watchlog script every 30 second' >> /etc/systemd/system/watchlog.timer
+		echo '[Timer]' >> /etc/systemd/system/watchlog.timer
+		echo '# Run every 30 second' >> /etc/systemd/system/watchlog.timer
+		echo 'OnUnitActiveSec=30' >> /etc/systemd/system/watchlog.timer
+		echo 'Unit=watchlog.service' >> /etc/systemd/system/watchlog.timer
+		echo '[Install]' >> /etc/systemd/system/watchlog.timer
+		echo 'WantedBy=multi-user.target' >> /etc/systemd/system/watchlog.timer
+		cat /etc/systemd/system/watchlog.timer
+		systemctl start watchlog.timer
+		yum install epel-release -y && yum install spawn-fcgi php php-cli mod_fcgid httpd -y
+		cat /etc/rc.d/init.d/spawn-fcgi
+		cp /etc/sysconfig/spawn-fcgi /etc/sysconfig/spawn-fcgi.bak
+		sed -e 's/\#S/S/; s/\#O/O/;w /etc/sysconfig/spawn-fcgi' /etc/sysconfig/spawn-fcgi.bak
+		rm -f /etc/sysconfig/spawn-fcgi.bak
+		cat /etc/sysconfig/spawn-fcgi
+		touch /etc/systemd/system/spawn-fcgi.service
+		echo '[Unit]' >> /etc/systemd/system/spawn-fcgi.service
+		echo 'Description=Spawn-fcgi startup service by Otus' >> /etc/systemd/system/spawn-fcgi.service
+		echo 'After=network.target' >> /etc/systemd/system/spawn-fcgi.service
+		echo '[Service]' >> /etc/systemd/system/spawn-fcgi.service
+		echo 'Type=simple' >> /etc/systemd/system/spawn-fcgi.service
+		echo 'PIDFile=/var/run/spawn-fcgi.pid' >> /etc/systemd/system/spawn-fcgi.service
+		echo 'EnvironmentFile=/etc/sysconfig/spawn-fcgi' >> /etc/systemd/system/spawn-fcgi.service
+		echo 'ExecStart=/usr/bin/spawn-fcgi -n $OPTIONS' >> /etc/systemd/system/spawn-fcgi.service
+		echo 'KillMode=process' >> /etc/systemd/system/spawn-fcgi.service
+		echo '[Install]' >> /etc/systemd/system/spawn-fcgi.service
+		echo 'WantedBy=multi-user.target' >> /etc/systemd/system/spawn-fcgi.service
+		cat /etc/systemd/system/spawn-fcgi.service
+		systemctl start spawn-fcgi
+		systemctl status spawn-fcgi
+		touch /etc/systemd/system/httpd@.service
+		sed -e 's|sysconfig/httpd|sysconfig/httpd-%I|;w /etc/systemd/system/httpd@.service' /usr/lib/systemd/system/httpd.service
+		cat /etc/systemd/system/httpd@.service
+		echo '# /etc/sysconfig/httpd-first' >> /etc/sysconfig/httpd-first
+		echo 'OPTIONS=-f conf/first.conf' >> /etc/sysconfig/httpd-first
+		echo '# /etc/sysconfig/httpd-second' >> /etc/sysconfig/httpd-second
+		echo 'OPTIONS=-f conf/second.conf' >> /etc/sysconfig/httpd-second
+		cat /etc/sysconfig/httpd-first
+		cat /etc/sysconfig/httpd-second
+		cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/first.conf
+		sed -e 's/Listen\ 80/Listen\ 8080/;w /etc/httpd/conf/second.conf' /etc/httpd/conf/first.conf
+		echo 'PidFile /var/run/httpd-second.pid' >> /etc/httpd/conf/second.conf
+		systemctl start httpd@first
+		systemctl start httpd@second
+		ss -tnlp | grep httpd
 	SHELL
       end
   end
 end
-
