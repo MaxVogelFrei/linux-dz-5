@@ -13,7 +13,7 @@
 ### Написать сервис, который будет раз в 30 секунд мониторить лог на предмет наличия ключевого слова. Файл и слово должны задаваться в /etc/sysconfig
 
 
-
+Создаю конфиг с переменными для сервиса
 
 		touch /etc/sysconfig/watchlog
 		echo '# Configuration file for my watchdog service' >> /etc/sysconfig/watchlog
@@ -23,7 +23,7 @@
 		echo 'LOG=/var/log/watchlog.log' >> /etc/sysconfig/watchlog
 		cat /etc/sysconfig/watchlog
 
-
+Создаю произвольный лог в котором появляется нужное слово
 
 		touch /var/log/watchlog.log
 		echo '...string01' >> /var/log/watchlog.log
@@ -42,7 +42,7 @@
 		echo '...string12' >> /var/log/watchlog.log
 		cat /var/log/watchlog.log
 
-
+Создаю скрипт, выолпняющий поиск по слову и логу из конфига, разрешаю его выполнение
 
 		touch /opt/watchlog.sh
 		echo '#!/bin/bash' >> /opt/watchlog.sh
@@ -58,7 +58,7 @@
 		chmod o+x /opt/watchlog.sh
 		cat /opt/watchlog.sh
 
-
+Создаю oneshot юнит в systemd указывая что запускать и какой конфиг брать
 
 		touch /etc/systemd/system/watchlog.service
 		echo '[Unit]' >> /etc/systemd/system/watchlog.service
@@ -69,7 +69,7 @@
 		echo 'ExecStart=/opt/watchlog.sh $WORD $LOG' >> /etc/systemd/system/watchlog.service
 		cat /etc/systemd/system/watchlog.service
 
-
+Создаю таймер для сервиса и запускаю его
 
 		touch /etc/systemd/system/watchlog.timer
 		echo '[Unit]' >> /etc/systemd/system/watchlog.timer
@@ -85,17 +85,17 @@
 
 ### Из epel установить spawn-fcgi и переписать init-скрипт на unit-файл. Имя сервиса должно так же называться.
 
-
+Устанавливаю репозиторий и пакеты + сервер httpd
 
 		yum install epel-release -y && yum install spawn-fcgi php php-cli mod_fcgid httpd -y
 
-
+через sed убираю комментарии с опций в конфиге spawn-fcgi
 
 		cp /etc/sysconfig/spawn-fcgi /root/spawn-fcgi.bak
 		sed -e 's/\#S/S/; s/\#O/O/;w /etc/sysconfig/spawn-fcgi' spawn-fcgi.bak
 		cat /etc/sysconfig/spawn-fcgi
 
-
+создаю юнит 
 
 		touch /etc/systemd/system/spawn-fcgi.service
 		echo '[Unit]' >> /etc/systemd/system/spawn-fcgi.service
@@ -111,7 +111,7 @@
 		echo 'WantedBy=multi-user.target' >> /etc/systemd/system/spawn-fcgi.service
 		cat /etc/systemd/system/spawn-fcgi.service
 
-
+Проверяю что сервис стартует и работает
 
 		systemctl start spawn-fcgi
 		systemctl status spawn-fcgi
