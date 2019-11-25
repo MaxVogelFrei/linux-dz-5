@@ -118,25 +118,24 @@
 
 ### Дополнить юнит-файл apache httpd возможностьб запустить несколько инстансов сервера с разными конфигами
 
-
-
+Через sed из оригинального /usr/lib/systemd/system/httpd.service создаю новый юнит /etc/systemd/system/httpd@.service с параметров httpd-%I
 
 		sed -e 's/sysconfig\/httpd/sysconfig\/httpd-\%I/;w /etc/systemd/system/httpd@.service' /usr/lib/systemd/system/httpd.service
 
-
+Создаю два конфига в sysconfig для двух разных экземпляров
 
 		echo '# /etc/sysconfig/httpd-first' >> /etc/sysconfig/httpd-first
 		echo 'OPTIONS=-f conf/first.conf' >> /etc/sysconfig/httpd-first
 		echo '# /etc/sysconfig/httpd-second' >> /etc/sysconfig/httpd-second
 		echo 'OPTIONS=-f conf/second.conf' >> /etc/sysconfig/httpd-second
 
-
+Копирую оригиинальный httpd.conf и конфиг первого сервиса, и с помощью sed создаю второй изменив в нем номер порта и добавив Pid
 
 		cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/first.conf
 		sed -e 's/Listen\ 80/Listen\ 8080/;w /etc/httpd/conf/second.conf' /etc/httpd/conf/first.conf
 		echo 'PidFile /var/run/httpd-second.pid' >> /etc/httpd/conf/second.conf
 
-
+Запускаю оба сервиса и вижу что экземпляры слушают разные порты
 
 		systemctl start httpd@first
 		systemctl start httpd@second
@@ -175,8 +174,28 @@
 		echo '[Install]' >> /etc/systemd/system/jira.service
 		echo 'WantedBy=multi-user.target' >> /etc/systemd/system/jira.service
 
-
+Перечитываю конфиги сервисов, запускаю jira и проверяю, что запустилось
 
 		systemctl daemon-reload
 		systemctl start jira
 		systemctl status jira
+
+		● jira.service - Atlassian Jira
+		   Loaded: loaded (/etc/systemd/system/jira.service; disabled; vendor preset: disabled)
+		   Active: active (running) since Mon 2019-11-25 10:45:42 UTC; 1min 31s ago
+		  Process: 6067 ExecStart=/root/jira/atlassian-jira-software-8.5.1-standalone/bin/start-jira.sh (code=exited, status=0/SUCCESS)
+		 Main PID: 6104 (java)
+		   CGroup: /system.slice/jira.service
+		           └─6104 /usr/bin/java -Djava.util.logging.config.file=/root/jira/atlassian-jira-software-8.5.1-standalone/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Xms384m -Xmx2048m -XX:Initi...
+		
+		Nov 25 10:45:42 otuslinux start-jira.sh[6067]: MMMMMM
+		Nov 25 10:45:42 otuslinux start-jira.sh[6067]: +MMMMM
+		Nov 25 10:45:42 otuslinux start-jira.sh[6067]: MMMMM
+		Nov 25 10:45:42 otuslinux start-jira.sh[6067]: `UOJ
+		Nov 25 10:45:42 otuslinux start-jira.sh[6067]: Atlassian Jira
+		Nov 25 10:45:42 otuslinux start-jira.sh[6067]: Version : 8.5.1
+		Nov 25 10:45:42 otuslinux start-jira.sh[6067]: If you encounter issues starting or stopping JIRA, please see the Troubleshooting guide at https://docs.atlassian.com/jira/jadm-docs-085/Troubleshooting+installation
+		Nov 25 10:45:42 otuslinux start-jira.sh[6067]: Server startup logs are located in /root/jira/atlassian-jira-software-8.5.1-standalone/logs/catalina.out
+		Nov 25 10:45:42 otuslinux start-jira.sh[6067]: Tomcat started.
+		Nov 25 10:45:42 otuslinux systemd[1]: Started Atlassian Jira.
+
