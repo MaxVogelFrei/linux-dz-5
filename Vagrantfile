@@ -117,6 +117,26 @@ Vagrant.configure("2") do |config|
 		systemctl start httpd@first
 		systemctl start httpd@second
 		ss -tnlp | grep httpd
+		yum install -y wget java
+		wget https://www.atlassian.com/software/jira/downloads/binary/atlassian-jira-software-8.5.1.tar.gz
+		mkdir /root/jira
+		cd /root/jira
+		tar -xzvf atlassian-jira-software-8.5.1.tar.gz
+		/bin/bash /root/jira/atlassian-jira-software-8.5.1-standalone/bin/start-jira.sh
+		echo '[Unit]' >> /etc/systemd/system/jira.service
+		echo 'Description=Atlassian Jira' >> /etc/systemd/system/jira.service
+		echo 'After=network.target' >> /etc/systemd/system/jira.service
+		echo '[Service]' >> /etc/systemd/system/jira.service
+		echo 'Type=forking' >> /etc/systemd/system/jira.service
+		echo 'User=root' >> /etc/systemd/system/jira.service
+		echo 'PIDFile=/root/jira/atlassian-jira-software-8.5.1-standalone/work/catalina.pid' >> /etc/systemd/system/jira.service
+		echo 'ExecStart=/root/jira/atlassian-jira-software-8.5.1-standalone/bin/start-jira.sh' >> /etc/systemd/system/jira.service
+		echo 'ExecStop=/root/jira/atlassian-jira-software-8.5.1-standalone/bin/stop-jira.sh' >> /etc/systemd/system/jira.service
+		echo '[Install]' >> /etc/systemd/system/jira.service
+		echo 'WantedBy=multi-user.target' >> /etc/systemd/system/jira.service
+		systemctl daemon-reload
+		systemctl start jira
+		systemctl status jira
 	SHELL
       end
   end
