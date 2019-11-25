@@ -76,12 +76,16 @@
 		echo 'Description=Run watchlog script every 30 second' >> /etc/systemd/system/watchlog.timer
 		echo '[Timer]' >> /etc/systemd/system/watchlog.timer
 		echo '# Run every 30 second' >> /etc/systemd/system/watchlog.timer
-		echo 'OnUnitActiveSec=30' >> /etc/systemd/system/watchlog.timer
-		echo 'Unit=watchlog.service' >> /etc/systemd/system/watchlog.timer
-		echo '[Install]' >> /etc/systemd/system/watchlog.timer
-		echo 'WantedBy=multi-user.target' >> /etc/systemd/system/watchlog.timer
-		cat /etc/systemd/system/watchlog.timer
-		systemctl start watchlog.timer
+                echo 'OnBootSec=30' >> /etc/systemd/system/watchlog.timer
+                echo 'OnUnitActiveSec=30' >> /etc/systemd/system/watchlog.timer
+                echo 'Unit=watchlog.service' >> /etc/systemd/system/watchlog.timer
+                echo '[Install]' >> /etc/systemd/system/watchlog.timer
+                echo 'WantedBy=multi-user.target' >> /etc/systemd/system/watchlog.timer
+                cat /etc/systemd/system/watchlog.timer
+                systemctl enable watchlog.timer
+                systemctl start watchlog.timer
+                systemctl start watchlog.service
+
 
 ### Из epel установить spawn-fcgi и переписать init-скрипт на unit-файл. Имя сервиса должно так же называться.
 
@@ -115,6 +119,45 @@
 
 		systemctl start spawn-fcgi
 		systemctl status spawn-fcgi
+		● spawn-fcgi.service - Spawn-fcgi startup service by Otus
+		   Loaded: loaded (/etc/systemd/system/spawn-fcgi.service; disabled; vendor preset: disabled)
+		   Active: active (running) since Mon 2019-11-25 10:36:35 UTC; 26min ago
+		 Main PID: 5682 (php-cgi)
+		   CGroup: /system.slice/spawn-fcgi.service
+		           ├─5682 /usr/bin/php-cgi
+		           ├─5689 /usr/bin/php-cgi
+		           ├─5690 /usr/bin/php-cgi
+		           ├─5691 /usr/bin/php-cgi
+		           ├─5692 /usr/bin/php-cgi
+		           ├─5693 /usr/bin/php-cgi
+		           ├─5694 /usr/bin/php-cgi
+		           ├─5695 /usr/bin/php-cgi
+		           ├─5696 /usr/bin/php-cgi
+		           ├─5697 /usr/bin/php-cgi
+		           ├─5698 /usr/bin/php-cgi
+		           ├─5699 /usr/bin/php-cgi
+		           ├─5700 /usr/bin/php-cgi
+		           ├─5701 /usr/bin/php-cgi
+		           ├─5702 /usr/bin/php-cgi
+		           ├─5703 /usr/bin/php-cgi
+		           ├─5704 /usr/bin/php-cgi
+		           ├─5705 /usr/bin/php-cgi
+		           ├─5706 /usr/bin/php-cgi
+		           ├─5707 /usr/bin/php-cgi
+		           ├─5708 /usr/bin/php-cgi
+		           ├─5709 /usr/bin/php-cgi
+		           ├─5710 /usr/bin/php-cgi
+		           ├─5711 /usr/bin/php-cgi
+		           ├─5712 /usr/bin/php-cgi
+		           ├─5713 /usr/bin/php-cgi
+		           ├─5714 /usr/bin/php-cgi
+		           ├─5715 /usr/bin/php-cgi
+		           ├─5716 /usr/bin/php-cgi
+		           ├─5717 /usr/bin/php-cgi
+		           ├─5718 /usr/bin/php-cgi
+		           ├─5719 /usr/bin/php-cgi
+		           └─5720 /usr/bin/php-cgi
+
 
 ### Дополнить юнит-файл apache httpd возможностьб запустить несколько инстансов сервера с разными конфигами
 
@@ -140,6 +183,9 @@
 		systemctl start httpd@first
 		systemctl start httpd@second
 		ss -tnlp | grep httpd
+		LISTEN     0      128         :::8080                    :::*                   users:(("httpd",pid=5738,fd=4),("httpd",pid=5737,fd=4),("httpd",pid=5736,fd=4),("httpd",pid=5735,fd=4),("httpd",pid=5734,fd=4),("httpd",pid=5733,fd=4),("httpd",pid=5732,fd=4))
+		LISTEN     0      128         :::80                      :::*                   users:(("httpd",pid=5730,fd=4),("httpd",pid=5729,fd=4),("httpd",pid=5728,fd=4),("httpd",pid=5727,fd=4),("httpd",pid=5726,fd=4),("httpd",pid=5725,fd=4),("httpd",pid=5724,fd=4))
+
 
 
 ### Скачать демо-версию Atlassian Jira и переписать основной скрипт запуска на unit-файл
