@@ -144,23 +144,23 @@
 
 ### Скачать демо-версию Atlassian Jira и переписать основной скрипт запуска на unit-файл
 
-
+Устанавливаю wget и java для jira
 
 		yum install -y wget java
 
-
+скачиваю архив с jira, распаковываю
 
 		mkdir /root/jira
 		cd /root/jira
 		wget -q https://www.atlassian.com/software/jira/downloads/binary/atlassian-jira-software-8.5.1.tar.gz
 		tar -xzvf atlassian-jira-software-8.5.1.tar.gz
 
-
+проверяю что стартует
 
 		/bin/bash /root/jira/atlassian-jira-software-8.5.1-standalone/bin/start-jira.sh
 		/bin/bash /root/jira/atlassian-jira-software-8.5.1-standalone/bin/stop-jira.sh
 
-
+Создаю unit указав start и stop скрипты, pid
 
 		echo '[Unit]' >> /etc/systemd/system/jira.service
 		echo 'Description=Atlassian Jira' >> /etc/systemd/system/jira.service
