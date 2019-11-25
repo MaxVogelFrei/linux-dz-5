@@ -118,11 +118,12 @@ Vagrant.configure("2") do |config|
 		systemctl start httpd@second
 		ss -tnlp | grep httpd
 		yum install -y wget java
-		wget https://www.atlassian.com/software/jira/downloads/binary/atlassian-jira-software-8.5.1.tar.gz
 		mkdir /root/jira
 		cd /root/jira
+		wget -q https://www.atlassian.com/software/jira/downloads/binary/atlassian-jira-software-8.5.1.tar.gz
 		tar -xzvf atlassian-jira-software-8.5.1.tar.gz
 		/bin/bash /root/jira/atlassian-jira-software-8.5.1-standalone/bin/start-jira.sh
+		/bin/bash /root/jira/atlassian-jira-software-8.5.1-standalone/bin/stop-jira.sh
 		echo '[Unit]' >> /etc/systemd/system/jira.service
 		echo 'Description=Atlassian Jira' >> /etc/systemd/system/jira.service
 		echo 'After=network.target' >> /etc/systemd/system/jira.service
