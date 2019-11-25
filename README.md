@@ -69,22 +69,22 @@
 		echo 'ExecStart=/opt/watchlog.sh $WORD $LOG' >> /etc/systemd/system/watchlog.service
 		cat /etc/systemd/system/watchlog.service
 
-Создаю таймер для сервиса и запускаю его
+Создаю таймер для сервиса (30с после загрузки и каждые 30сек) и запускаю его
 
 		touch /etc/systemd/system/watchlog.timer
 		echo '[Unit]' >> /etc/systemd/system/watchlog.timer
 		echo 'Description=Run watchlog script every 30 second' >> /etc/systemd/system/watchlog.timer
 		echo '[Timer]' >> /etc/systemd/system/watchlog.timer
 		echo '# Run every 30 second' >> /etc/systemd/system/watchlog.timer
-                echo 'OnBootSec=30' >> /etc/systemd/system/watchlog.timer
-                echo 'OnUnitActiveSec=30' >> /etc/systemd/system/watchlog.timer
-                echo 'Unit=watchlog.service' >> /etc/systemd/system/watchlog.timer
-                echo '[Install]' >> /etc/systemd/system/watchlog.timer
-                echo 'WantedBy=multi-user.target' >> /etc/systemd/system/watchlog.timer
-                cat /etc/systemd/system/watchlog.timer
-                systemctl enable watchlog.timer
-                systemctl start watchlog.timer
-                systemctl start watchlog.service
+		echo 'OnBootSec=30' >> /etc/systemd/system/watchlog.timer
+		echo 'OnUnitActiveSec=30' >> /etc/systemd/system/watchlog.timer
+		echo 'Unit=watchlog.service' >> /etc/systemd/system/watchlog.timer
+		echo '[Install]' >> /etc/systemd/system/watchlog.timer
+		echo 'WantedBy=multi-user.target' >> /etc/systemd/system/watchlog.timer
+		cat /etc/systemd/system/watchlog.timer
+		systemctl enable watchlog.timer
+		systemctl start watchlog.timer
+		systemctl start watchlog.service
 
 
 ### Из epel установить spawn-fcgi и переписать init-скрипт на unit-файл. Имя сервиса должно так же называться.
